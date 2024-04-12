@@ -186,7 +186,7 @@ def main():
     for epoch in range(args.epochs):
         print('Epoch [%d/%d]' % (epoch+1, args.epochs))
 
-        train_log = train(args, train_loader_ir,train_loader_vi, model, criterion_ssim_ir, criterion_ssim_vi,criterion_RMI_ir,criterion_RMI_vi, optimizer, epoch)     # 训练集
+        train_log = train(args, train_loader_ir, model, criterion_ssim_ir, criterion_ssim_vi,criterion_RMI_ir,criterion_RMI_vi, optimizer, epoch)     # 训练集
 
         print('loss: %.4f - loss_ssim_ir: %.4f - loss_ssim_vi: %.4f - loss_RMI_ir: %.4f - loss_RMI_vi: %.4f '
               % (train_log['loss'],
