@@ -160,7 +160,7 @@ def main():
                                                                (0.229, 0.224, 0.225))
                                           ])
 
-    dataset_train = GetDataset(MRIFolder=folder_dataset_train_vi, PETFolderDataset=folder_dataset_train_ir,transform=transform_train)
+    dataset_train = GetDataset(MRIFolder=folder_dataset_train_vi, PETFolder=folder_dataset_train_ir,transform=transform_train)
     train_loader_ir = DataLoader(dataset_train,shuffle=True,batch_size=args.batch_size)
     model = net(in_channel=2)
     model = nn.DataParallel(model, device_ids=[0, 1])
