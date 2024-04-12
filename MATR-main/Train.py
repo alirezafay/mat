@@ -20,8 +20,7 @@ from Networks.net import MODEL as net
 from losses import ssim_ir, ssim_vi,RMI_ir,RMI_vi
 
 
-device = torch.device('cuda:0')
-use_gpu = torch.cuda.is_available()
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -44,31 +43,28 @@ def parse_args():
 
 
 class GetDataset(Dataset):
-    def __init__(self, imageFolderDataset, transform=None):
-        self.imageFolderDataset = imageFolderDataset
+    def __init__(self, MRIFolder, PETFolder, transform=None):
+        self.MRIFolder = MRIFolder
+        self.PETFolder = PETFolder
         self.transform = transform
-
+        self.mri_files = sorted(os.listdir(MRIFolder))
+        self.pet_files = sorted(os.listdir(PETFolder))
+        
     def __getitem__(self, index):
-
-        ir = '...'
-        vi = '...'
-
-        ir = Image.open(ir).convert('L')
-        vi = Image.open(vi).convert('L')
-
-        if self.transform is not None:
-            tran = transforms.ToTensor()
-            ir=tran(ir)
-
-            vi= tran(vi)
-
-            input = torch.cat((ir, vi), -3)
-
-
-            return input, ir,vi
-
+        mri_path = os.path.join(mri_folder, self.mri_files[index])
+        pet_path = os.path.join(pet_folder, self.pet_files[index])
+        mri_image = Image.open(mri_path).convert('L')
+        pet_image = Image.open(pet_path).convert('L')
+        
+        if self.transform:
+            mri_image = self.transform(mri_image)
+            pet_image = self.transform(pet_image)
+            
+        input = torch.cat((pet_image, mri_image), -3)
+        return input, pet_image, mri_image
+        
     def __len__(self):
-        return len(self.imageFolderDataset)
+        return len(self.mri_files)
 
 
 class AverageMeter(object):
@@ -89,7 +85,7 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-def train(args, train_loader_ir,train_loader_vi, model, criterion_ssim_ir, criterion_ssim_vi,criterion_RMI_ir,criterion_RMI_vi,optimizer, epoch, scheduler=None):
+def train(args, train_loader_ir, model, criterion_ssim_ir, criterion_ssim_vi,criterion_RMI_ir,criterion_RMI_vi,optimizer, epoch, scheduler=None):
     losses = AverageMeter()
     losses_ssim_ir = AverageMeter()
     losses_ssim_vi = AverageMeter()
@@ -101,19 +97,14 @@ def train(args, train_loader_ir,train_loader_vi, model, criterion_ssim_ir, crite
     for i, (input,ir,vi)  in tqdm(enumerate(train_loader_ir), total=len(train_loader_ir)):
 
         if use_gpu:
-            input = input.cuda()
-
-            ir=ir.cuda()
-            vi=vi.cuda()
-
-
+            ir=ir.to(device)
+            vi=vi.to(device)
         else:
             input = input
             ir=ir
             vi=vi
 
         out = model(input)
-
 
         loss_ssim_ir= weight[0] * criterion_ssim_ir(out, ir)
         loss_ssim_vi= weight[1] * criterion_ssim_vi(out, vi)
@@ -161,34 +152,19 @@ def main():
     joblib.dump(args, 'models/%s/args.pkl' %args.name)
     cudnn.benchmark = True
 
-    training_dir_ir = ".../"
-    folder_dataset_train_ir = glob.glob(training_dir_ir )
-    training_dir_vi = "..../"
-
-    folder_dataset_train_vi= glob.glob(training_dir_vi )
+    folder_dataset_train_ir = "/kaggle/working/MATR/imageFolderDataset/PET/images"
+    folder_dataset_train_vi= "/kaggle/working/MATR/imageFolderDataset/MRI"
 
     transform_train = transforms.Compose([transforms.ToTensor(),
                                           transforms.Normalize((0.485, 0.456, 0.406),
                                                                (0.229, 0.224, 0.225))
                                           ])
 
-    dataset_train_ir = GetDataset(imageFolderDataset=folder_dataset_train_ir,
-                                                  transform=transform_train)
-    dataset_train_vi = GetDataset(imageFolderDataset=folder_dataset_train_vi,
-                                  transform=transform_train)
-    train_loader_ir = DataLoader(dataset_train_ir,
-                              shuffle=True,
-                              batch_size=args.batch_size)
-    train_loader_vi = DataLoader(dataset_train_vi,
-                                 shuffle=True,
-                                 batch_size=args.batch_size)
+    dataset_train = GetDataset(MRIFolder=folder_dataset_train_vi, PETFolderDataset=folder_dataset_train_ir,transform=transform_train)
+    train_loader_ir = DataLoader(dataset_train,shuffle=True,batch_size=args.batch_size)
     model = net(in_channel=2)
-    if use_gpu:
-        model = model.cuda()
-        model.cuda()
-
-    else:
-        model = model
+    model = nn.DataParallel(model, device_ids=[0, 1])
+    model = model.to(device)
     criterion_ssim_ir = ssim_ir
     criterion_ssim_vi = ssim_vi
     criterion_RMI_ir = RMI_ir
