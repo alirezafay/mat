@@ -51,8 +51,8 @@ class GetDataset(Dataset):
         self.pet_files = sorted(os.listdir(PETFolder))
         
     def __getitem__(self, index):
-        mri_path = os.path.join(mri_folder, self.mri_files[index])
-        pet_path = os.path.join(pet_folder, self.pet_files[index])
+        mri_path = os.path.join(MRIFolder, self.mri_files[index])
+        pet_path = os.path.join(PETFolder, self.pet_files[index])
         mri_image = Image.open(mri_path).convert('L')
         pet_image = Image.open(pet_path).convert('L')
         
