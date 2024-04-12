@@ -152,8 +152,8 @@ def main():
     joblib.dump(args, 'models/%s/args.pkl' %args.name)
     cudnn.benchmark = True
 
-    folder_dataset_train_ir = "/kaggle/working/MATR/imageFolderDataset/PET/images"
-    folder_dataset_train_vi= "/kaggle/working/MATR/imageFolderDataset/MRI"
+    folder_dataset_train_ir = "/kaggle/working/PET/images"
+    folder_dataset_train_vi= "/kaggle/working/MRI"
 
     transform_train = transforms.Compose([transforms.ToTensor(),
                                           transforms.Normalize((0.485, 0.456, 0.406),
