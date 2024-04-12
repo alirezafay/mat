@@ -163,6 +163,7 @@ def main():
     dataset_train = GetDataset(MRIFolder=folder_dataset_train_vi, PETFolder=folder_dataset_train_ir,transform=transform_train)
     train_loader_ir = DataLoader(dataset_train,shuffle=True,batch_size=args.batch_size)
     model = net(in_channel=2)
+    import torch.nn as nn
     model = nn.DataParallel(model, device_ids=[0, 1])
     model = model.to(device)
     criterion_ssim_ir = ssim_ir
