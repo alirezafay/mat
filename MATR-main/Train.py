@@ -181,16 +181,6 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=args.lr,
                            betas=args.betas, eps=args.eps)
 
-    log = pd.DataFrame(index=[],
-                       columns=['epoch',
-
-                                'loss',
-                                'loss_ssim_ir',
-                                'loss_ssim_vi',
-                                'loss_RMI_ir',
-                                'loss_RMI_vi',
-                                ])
-
     for epoch in range(args.epochs):
         print('Epoch [%d/%d]' % (epoch+1, args.epochs))
 
@@ -203,24 +193,10 @@ def main():
                  train_log['loss_RMI_ir'],
                  train_log['loss_RMI_vi'],
                  ))
-
-        tmp = pd.Series([
-            epoch + 1,
-
-            train_log['loss'],
-            train_log['loss_ssim_ir'],
-            train_log['loss_ssim_vi'],
-            train_log['loss_RMI_ir'],
-            train_log['loss_RMI_vi'],
-
-        ], index=['epoch', 'loss', 'loss_ssim_ir', 'loss_ssim_vi', 'loss_RMI_ir', 'loss_RMI_vi'])
-
-        log = log.append(tmp, ignore_index=True)
-        log.to_csv('models/%s/log.csv' %args.name, index=False)
-
+        
         if (epoch+1) % 1 == 0:
             torch.save(model.state_dict(), 'models/%s/model_{}.pth'.format(epoch+1) %args.name)
-
+        
 
 if __name__ == '__main__':
     main()
