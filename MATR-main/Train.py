@@ -62,7 +62,7 @@ class GetDataset(Dataset):
         color_map = plt.get_cmap('jet')
         pet_image = color_map(pet_image0)
         pet_image[background_mask] = transparent_color
-        mri_image = Image.open(mri_path).convert('L')
+        
         
         
         if self.transform:
