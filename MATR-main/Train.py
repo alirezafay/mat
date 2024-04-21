@@ -54,7 +54,16 @@ class GetDataset(Dataset):
         mri_path = os.path.join(MRIFolder, self.mri_files[index])
         pet_path = os.path.join(PETFolder, self.pet_files[index])
         mri_image = Image.open(mri_path).convert('L')
-        pet_image = Image.open(pet_path).convert('L')
+        pet_image0 = cv2.imread(pet_path)
+        pet_image0 = pet_image0[:,:,0]
+        background_threshold = 1
+        background_mask = x < background_threshold
+        transparent_color = (0,0,0,1)  # black color (1, 1, 1) with alpha 0 (fully transparent)
+        color_map = plt.get_cmap('jet')
+        pet_image = color_map(pet_image0)
+        pet_image[background_mask] = transparent_color
+        mri_image = Image.open(mri_path).convert('L')
+        
         
         if self.transform:
             mri_image = self.transform(mri_image)
