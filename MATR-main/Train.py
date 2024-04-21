@@ -63,8 +63,6 @@ class GetDataset(Dataset):
         pet_image = color_map(pet_image0)
         pet_image[background_mask] = transparent_color
         
-        
-        
         if self.transform:
             mri_image = self.transform(mri_image)
             pet_image = self.transform(pet_image)
@@ -161,7 +159,7 @@ def main():
     joblib.dump(args, 'models/%s/args.pkl' %args.name)
     cudnn.benchmark = True
 
-    folder_dataset_train_ir = '/kaggle/working/mat/MATR-main/PET/images'
+    folder_dataset_train_ir = '/kaggle/working/mat/MATR-main/PET'
     folder_dataset_train_vi= '/kaggle/working/mat/MATR-main/MRI'
     transform_train = transforms.Compose([transforms.ToTensor(),
                                           transforms.Normalize((0.485, 0.456, 0.406),
