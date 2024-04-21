@@ -163,7 +163,6 @@ def main():
 
     folder_dataset_train_ir = '/kaggle/working/mat/MATR-main/PET/images'
     folder_dataset_train_vi= '/kaggle/working/mat/MATR-main/MRI'
-
     transform_train = transforms.Compose([transforms.ToTensor(),
                                           transforms.Normalize((0.485, 0.456, 0.406),
                                                                (0.229, 0.224, 0.225))
